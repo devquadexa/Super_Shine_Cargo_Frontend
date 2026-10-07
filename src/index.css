@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Custom animation delay utility */
+@layer utilities {
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+}
+
+body {
+  /* Modern sans-serif system-wide. Inter loads from Google Fonts; the
+     system fallbacks (Segoe UI on Windows, San Francisco on macOS,
+     Roboto on Android) keep it modern and consistent even offline.
+     A single font means letters and numbers always match. */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Uniform-height, equal-width figures for clean tables and stats */
+  font-variant-numeric: lining-nums tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f5f5f5;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Button Focus and Hover Styles */
+button {
+  outline: none;
+}
+
+button:focus-visible {
+  outline: 2px solid #1e3f63;
+  outline-offset: 2px;
+}
+
+button:hover {
+  outline: none;
+}
+
+/* Prevent white flash on all button states */
+.btn,
+[class*="btn-"] {
+  outline: none;
+  background-clip: padding-box;
+}
+
+.btn:focus-visible,
+[class*="btn-"]:focus-visible {
+  outline: 2px solid #1e3f63;
+  outline-offset: 2px;
+}
+
+.btn:hover,
+[class*="btn-"]:hover {
+  outline: none;
+}
