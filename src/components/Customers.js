@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { customerService } from '../api/services/customerService';
-import { jobService } from '../api/services/jobService';
 import API_BASE from '../api/config';
 import Pagination from './Pagination';
 
