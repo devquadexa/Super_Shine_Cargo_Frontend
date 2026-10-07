@@ -13,6 +13,7 @@ import AdvancePayment from './AdvancePayment';
 import JobPettyCash from './JobPettyCash';
 import JobInvoicingModal from './JobInvoicingModal';
 import Pagination from './Pagination';
+import { getSpecificPettyCashStatus } from '../utils/pettyCashUtils';
 
 function Jobs() {
   const { user } = useAuth();
@@ -2412,15 +2413,17 @@ function Jobs() {
                             return (
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                Request Pending Approval
+                                Manager Request Pending
                               </span>
                             );
                           }
 
                           if (approvedRequest) {
+                            const approverTitle = approvedRequest.approvedByRole || 'Manager';
                             return (
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">
-                                ✓ Approved (Pending Finance)
+                                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                Finance Request Pending (${approverTitle} Approved)
                               </span>
                             );
                           }
@@ -2556,25 +2559,22 @@ function Jobs() {
                                     {!isDisbursed ? '-' : balanceAmount.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
                                   </td>
                                   <td className="px-5 py-3 text-center">
-                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                      displayStatus === 'Requested' ? 'bg-amber-100 text-amber-800' :
-                                      displayStatus === 'Approved' ? 'bg-indigo-100 text-indigo-800' :
-                                      displayStatus === 'Rejected' ? 'bg-red-100 text-red-800' :
-                                      displayStatus === 'Assigned' ? 'bg-blue-100 text-blue-800' :
-                                      displayStatus === 'Partially Settled' ? 'bg-amber-100 text-amber-800' :
-                                      displayStatus === 'Settled' ? 'bg-green-100 text-green-800' :
-                                      displayStatus === 'Settled / Balance Returned' ? 'bg-green-100 text-green-800' :
-                                      displayStatus === 'Settled / Over Due Collected' ? 'bg-green-100 text-green-800' :
-                                      displayStatus === 'Full Petty Cash Returned' ? 'bg-gray-100 text-gray-800' :
-                                      displayStatus === 'Closed' ? 'bg-gray-100 text-gray-800' :
-                                      displayStatus === 'Pending Approval / Balance' ? 'bg-purple-100 text-purple-800' :
-                                      displayStatus === 'Pending Approval / Over Due' ? 'bg-purple-100 text-purple-800' :
-                                      displayStatus === 'Pending Approval' ? 'bg-purple-100 text-purple-800' :
-                                      displayStatus === 'Over Due' ? 'bg-red-100 text-red-800' :
-                                      'bg-yellow-100 text-yellow-800'
-                                    }`}>
-                                      {displayStatus || 'Assigned'}
-                                    </span>
+                                    {(() => {
+                                      const workflowAsgn = group.find(x => x.status === displayStatus) || a;
+                                      const statusObj = getSpecificPettyCashStatus(displayStatus, workflowAsgn);
+                                      return (
+                                        <div className="inline-flex flex-col items-center justify-center">
+                                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${statusObj.badgeClass}`}>
+                                            {statusObj.label}
+                                          </span>
+                                          {statusObj.subtext && (
+                                            <span className="text-[10px] text-gray-500 mt-0.5 max-w-[170px] truncate" title={statusObj.subtext}>
+                                              {statusObj.subtext}
+                                            </span>
+                                          )}
+                                        </div>
+                                      );
+                                    })()}
                                   </td>
                                   {['Admin','Super Admin','Manager','Waff Clerk','Finance'].includes(user?.role) && (
                                     <td className="px-5 py-3 text-center">
@@ -2633,15 +2633,18 @@ function Jobs() {
                                           );
                                         })()}
                                         {displayStatus === 'Requested' && user?.role === 'Waff Clerk' && (
-                                          <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 font-semibold">
-                                            Pending Approval
+                                          <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 font-semibold" title={a.assignedManagerName ? `Assigned to ${a.assignedManagerName}` : 'Pending Manager Approval'}>
+                                            Manager Request Pending
                                           </span>
                                         )}
-                                        {displayStatus === 'Approved' && user?.role !== 'Finance' && (
-                                          <span className="text-xs text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200 font-semibold">
-                                            Pending Finance
-                                          </span>
-                                        )}
+                                        {displayStatus === 'Approved' && user?.role !== 'Finance' && (() => {
+                                          const approverTitle = a.approvedByRole || 'Manager';
+                                          return (
+                                            <span className="text-xs text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200 font-semibold" title={`Approved by ${approverTitle}${a.approvedByName ? ` (${a.approvedByName})` : ''}`}>
+                                              Finance Request Pending
+                                            </span>
+                                          );
+                                        })()}
                                         {isAssigned && (
                                           <button
                                             onClick={() => {
@@ -2773,19 +2776,21 @@ function Jobs() {
                                             Re-request
                                           </button>
                                         )}
-                                        <button
-                                          onClick={() => {
-                                            const activeId = group.find(g => parseFloat(g.settledAmount || 0) > 0)?.pettyAssignmentId || a.pettyAssignmentId || a.assignmentId;
-                                            setSettlementItemsModal({
-                                              pettyAssignmentId: activeId,
-                                              userName: a.userName || a.waff_clerk_name || getUserFullName(a.userId)
-                                            });
-                                          }}
-                                          className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition"
-                                          title="View settlement items"
-                                        >
-                                          Items
-                                        </button>
+                                        {isDisbursed && (
+                                          <button
+                                            onClick={() => {
+                                              const activeId = group.find(g => parseFloat(g.settledAmount || 0) > 0)?.pettyAssignmentId || a.pettyAssignmentId || a.assignmentId;
+                                              setSettlementItemsModal({
+                                                pettyAssignmentId: activeId,
+                                                userName: a.userName || a.waff_clerk_name || getUserFullName(a.userId)
+                                              });
+                                            }}
+                                            className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition"
+                                            title="View settlement items"
+                                          >
+                                            Items
+                                          </button>
+                                        )}
                                       </div>
                                     </td>
                                   )}

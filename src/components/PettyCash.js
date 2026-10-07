@@ -8,6 +8,7 @@ import { pettyCashService } from '../api/services/pettyCashService';
 import CashWithdrawalModal from './CashWithdrawalModal';
 import Pagination from './Pagination';
 import API_BASE from '../api/config';
+import { getSpecificPettyCashStatus } from '../utils/pettyCashUtils';
 
 function PettyCash() {
   const { user } = useAuth();
@@ -1446,15 +1447,9 @@ function PettyCash() {
     }
   };
 
-  const getStatusDisplay = (status) => {
-    switch (status) {
-      case 'Requested': return 'Requested';
-      case 'Approved': return 'Approved';
-      case 'Rejected': return 'Rejected';
-      case 'Settled / Balance Returned': return 'Settled / BR';
-      case 'Settled / Over Due Collected': return 'Settled / OC';
-      default: return status;
-    }
+  const getStatusDisplay = (status, item = {}) => {
+    const statusObj = getSpecificPettyCashStatus(status, item);
+    return statusObj.label;
   };
 
   // Get filtered assignments count
@@ -2528,9 +2523,21 @@ function PettyCash() {
                             <span className="text-gray-900">{first.assignedToName || first.assignedTo || '-'}</span>
                           </td>
                           <td className="px-4 py-3" data-label="Status">
-                            <span className={`status-badge ${getStatusBadgeClass(groupStatus)}`}>
-                              {getStatusDisplay(groupStatus)}
-                            </span>
+                            {(() => {
+                              const statusObj = getSpecificPettyCashStatus(groupStatus, first);
+                              return (
+                                <div className="flex flex-col items-start">
+                                  <span className={`status-badge ${getStatusBadgeClass(groupStatus)}`}>
+                                    {statusObj.label}
+                                  </span>
+                                  {statusObj.subtext && (
+                                    <span className="text-[10px] text-gray-500 mt-0.5 max-w-[160px] truncate" title={statusObj.subtext}>
+                                      {statusObj.subtext}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td className="px-4 py-3" data-label="Total Assigned"><strong className="text-gray-900">LKR {formatAmount(totalAssigned)}</strong></td>
                           <td className="px-4 py-3" data-label="Total Settled"><strong className="text-gray-900">LKR {formatAmount(totalSpent)}</strong></td>

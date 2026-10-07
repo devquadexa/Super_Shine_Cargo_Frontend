@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { customerService } from '../api/services/customerService';
 import { jobService } from '../api/services/jobService';
+import API_BASE from '../api/config';
 import Pagination from './Pagination';
 
 function Customers() {
@@ -73,11 +74,9 @@ function Customers() {
     };
   }, [showModal]);
 
-  const getAPIBase = () => process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
-
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${getAPIBase()}/api/customers/categories/all`, {
+      const response = await fetch(`${API_BASE}/api/customers/categories/all`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -91,7 +90,7 @@ function Customers() {
 
   const fetchDistricts = async () => {
     try {
-      const response = await fetch(`${getAPIBase()}/api/locations/districts`, {
+      const response = await fetch(`${API_BASE}/api/locations/districts`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -106,7 +105,7 @@ function Customers() {
 
   const fetchAllCities = async () => {
     try {
-      const response = await fetch(`${getAPIBase()}/api/locations/cities`, {
+      const response = await fetch(`${API_BASE}/api/locations/cities`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

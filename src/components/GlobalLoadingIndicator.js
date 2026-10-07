@@ -45,7 +45,7 @@ const GlobalLoadingIndicator = () => {
         wasMutating = true;
         setShowSuccessToast(false);
         if (timer) clearTimeout(timer);
-      } else if (wasMutating && !state.isMutating) {
+      } else if (wasMutating && !state.isLoading) {
         // Just finished a mutation
         wasMutating = false;
         if (state.successText) {

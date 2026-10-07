@@ -13,6 +13,7 @@ import {
   isFinanceRole,
   canEditSettlement,
   canDeleteSettlementItem,
+  getSpecificPettyCashStatus,
 } from '../utils/pettyCashUtils';
 import '../styles/JobPettyCash.css';
 
@@ -721,13 +722,23 @@ function JobPettyCash({ job, users, onUpdate }) {
                     </span>
 
                     {/* Status badge */}
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusBadgeClass(
-                        assignment.status
-                      )}`}
-                    >
-                      {assignment.status}
-                    </span>
+                    {(() => {
+                      const statusObj = getSpecificPettyCashStatus(assignment.status, assignment);
+                      return (
+                        <div className="flex flex-col items-start">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusObj.badgeClass}`}
+                          >
+                            {statusObj.label}
+                          </span>
+                          {statusObj.subtext && (
+                            <span className="text-[10px] text-gray-500 mt-0.5 max-w-[150px] truncate" title={statusObj.subtext}>
+                              {statusObj.subtext}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Balance / Overdue (only for disbursed assignments) */}
                     {isSettledOrBeyond && (
